@@ -1,0 +1,27 @@
+
+.OPTION
++   INGOLD=2
++   NUMDGT=5
++   MEASDGT=5
++   CONVERGE=1
++   DCON=1
++   POST=0
++   UNWRAP
++   STRICT_CHECK=1
+*+   ACOUT=1
++   SYMB=1
++   CPTIME=180
++   NOMOD
++   STATFL=1
++   MEASFORM=3
++   LIS_NEW=1
+.SAVE LEVEL = NONE
+
+.LIB '${PTS_SPICE_MODEL}' TT
+.include './eval_cir.sp'
+
+
+* Power supply settings
+VDD	vdd 0		half
+VSS	0 vss		half
+.PARAM half='psvoltage/2'

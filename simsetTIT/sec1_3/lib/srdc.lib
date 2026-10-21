@@ -1,0 +1,38 @@
+
+* Slew RateのVAを決定するためのネットリスト
+.lib srdc
+VDD	vdd 0		half
+VSS	0 vss		half
+
+* For positive amplitude
+X1a	s1 in1 out1 vdd vss	opamp
+R1a	s1 0			valr1
+R2a	out1 s1			valr2
+
+* For negative amplitude
+X1b	s2 in2 out2 vdd vss	opamp
+R1b	s2 0			valr1
+R2b	out2 s2			valr2
+
+* Offset voltage
+X1c     ss 0 os vdd vss         opamp
+R1c     ss 0                    valr1
+R2c     os ss                   valr2
+
+
+VIN	in1 0			DC 0
+E1	0 in2 in1 0		1
+
+* Slew rate simulation settings (use sr.amp in meas.lib)
+* pulse amplitude and transition time is described in sr.amp
+.PARAM
++ ar=1 G=2			$ pulse amplitude ratio to max amplitude
++ valr1=10k valr2=10k
++ vmin=10m half='psvoltage/2' vstep=10m
+
+.DC VIN vmin half vstep
+.MEAS DC vpmax FIND V(in1) WHEN PAR'abs(V(out1,os)-V(in1)*G)/V(in1)'=0.05 RISE=1 print=0
+.MEAS DC vnmax FIND V(in1) WHEN PAR'abs(V(out2,os)-V(in2)*G)/V(in1)'=0.05 RISE=1 print=0
+.MEAS DC amp PARAM='min(vpmax,abs(vnmax))*ar'
+
+.endl

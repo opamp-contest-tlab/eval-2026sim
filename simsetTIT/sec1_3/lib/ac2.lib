@@ -1,0 +1,20 @@
+* Input refered noise simulation
+
+.lib ac2
+
+VIN	inp 0 	dc 0
+VDD	vdd 0	'half'
+VSS	0 vss	'half'
+ 
+X1      s inp out vdd vss       opamp
+R1      s 0                     nores valr1
+R2      out s                   nores valr2
+ 
+.MODEL nores R noise=0
+.PARAM half='psvoltage/2' valr1=10k valr2=10k
+.AC DEC 100 0.1 1MEG
+.NOISE V(out) VIN 100
+.MEAS AC input_noise INTEG par('inoise(m)*inoise(m)') FROM=0.1 TO=1meg print=0
+.MEAS AC irn param='sqrt(input_noise)'
+
+.endl ac2

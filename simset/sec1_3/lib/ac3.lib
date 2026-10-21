@@ -1,0 +1,23 @@
+* CMRR simulation
+
+.lib ac3
+
+VIN     in 0    dc 0 ac 1
+VDD	vdd 0	half
+VSS	0 vss	half
+ 
+X1      s1 in oc vdd vss        opamp
+R11     oc s1           valrf
+C11     s1 in           valcf
+R21     oc 0            valrl
+ 
+X2      s2 in od vdd vss        opamp
+R12     od s2           valrf
+C12     s2 0            valcf
+R22     od 0            valrl
+ 
+.PARAM half='psvoltage/2' valrl=20k valrf=1T valcf=10m
+.AC DEC 100 0.1 10G
+.MEAS cmrr MAX PAR('VDB(od) - VDB(oc)') FROM=0.1 TO=10G
+
+.endl ac3

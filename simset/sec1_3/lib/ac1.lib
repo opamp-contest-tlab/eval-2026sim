@@ -1,0 +1,36 @@
+* Simulation for DC gain, phase margin and gain bandwidth product 
+
+.lib ac1
+
+VIN	inp 0 	dc 0 ac 1
+VDD	vdd 0	'half'
+VSS	0 vss	'half'
+ 
+X1	s inp out vdd vss	opamp
+RL	out 0			valrl
+RF	out s			valrf
+CF	s 0			valcf
+ 
+.PARAM half='psvoltage/2' valrl=20k valrf=1T valcf=10m
+.AC DEC 100 0.1 10G
+
+* DC gain
+.MEAS AC dcgain FIND VM(out) AT=0.1
+.MEAS AC dcgain_db FIND VDB(out) AT=0.1
+
+* Gain bandwidth product
+* 開ループ利得が0dBになった周波数
+.meas AC ugf when vdb(out)=0.0 print=0
+* 開ループ利得が直流利得の平方根(dBで半分)になった時の周波数と利得の積
+.meas ac freq_half when vdb(out)='dcgain_db/2' print=0
+.meas ac dcgain_half find vm(out) at=freq_half print=0
+.meas ac product_dcgain_freq param='freq_half*dcgain_half' print=0
+* のどちらか小さい方
+.meas ac gbw param='min(ugf,product_dcgain_freq)'
+
+* Phase margin
+* 開ループ利得が0dBになった時周波数において出力電圧の位相回転が180degになるのに必要な位相
+* 評価する値 180deg − |単一利得帯域内の最大位相回転|
+.meas ac pm min par'180-abs(vp(out))' from=0.1 to=ugf
+
+.endl ac1

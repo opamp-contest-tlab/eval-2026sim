@@ -1,0 +1,152 @@
+
+.lib ac1
+
+VIN	in 0	dc 0 ac 1
+	
+X1	s in out vdd vss	opamp
+RF1	out s		rf	
+CF1	s 0		cf
+RL1	out 0		rl_open
+
+X2	s2 in out2 vdd vss	opamp
+RF2	out2 s2		rf	
+CF2	s2 0		cf
+RL2	out2 0		rl_open
+CL2	out2 0		cl
+
+X3	s3 in out3 vdd vss	opamp
+RF3	out3 s3		rf	
+CF3	s3 0		cf
+RL3	out3 0		rl_open
+CL3	out3 0		'cl*(1+crv)'
+
+X4	s4 in out4 vdd vss	opamp
+RF4	out4 s4		rf	
+CF4	s4 0		cf
+RL4	out4 0		rl_open
+CL4	out4 0		'cl*(1-crv)'
+
+.AC DEC 100 0.1 10G
+.PARAM crv=0.1
+.MEAS AC dcgain_db FIND VDB(out) AT=0.1
+.MEAS AC gbp1 WHEN VDB(out)=0 CROSS=1 print=0
+.MEAS AC gbp2 WHEN VDB(out2)=0 CROSS=1 print=0
+.MEAS AC gbp3 WHEN VDB(out3)=0 CROSS=1 print=0
+.MEAS AC gbp4 WHEN VDB(out4)=0 CROSS=1 print=0
+.MEAS AC pm1 MIN PAR'180-abs(VP(out))' FROM=0.1 TO=gbp1 print=0
+.MEAS AC pm2 MIN PAR'180-abs(VP(out2))' FROM=0.1 TO=gbp2 print=0
+.MEAS AC pm3 MIN PAR'180-abs(VP(out3))' FROM=0.1 TO=gbp3 print=0
+.MEAS AC pm4 MIN PAR'180-abs(VP(out4))' FROM=0.1 TO=gbp4 print=0
+.MEAS AC pmb PARAM='min(pm3,pm4)' print=0
+.MEAS AC pm PARAM='min(pm2,pmb)'
+.PZ V(out) VIN
+
+.endl ac1
+
+
+
+.lib ac2
+
+VIN	in 0	dc 0 ac 1
+
+X1	in out vdd vss	eval_cir
+
+.AC DEC 100 0.1 10G
+.MEAS AC a0 FIND VDB(out) AT=0.1 print=0
+.MEAS AC bw WHEN VDB(out)='a0-3' CROSS=1 
+
+.endl ac2
+
+
+.lib dc
+
+VIN	in1 0	dc 0
+E1	0 in2 in1 0	1
+	
+X1	in1 out1 vdd vss	eval_cir
+
+X2	in2 out2 vdd vss	eval_cir	
+
+Xo	0 os vdd vss		eval_cir
+
+.DC VIN 0 half 10m
+.OP
+.MEAS DC ibd FIND PAR'I(VDD)/3' AT=0 print=0
+.MEAS DC ibs FIND PAR'I(VSS)/3' AT=0 print=0
+.MEAS DC ib PARAM='max(abs(ibd),abs(ibs))' AT=0
+.MEAS DC pdis PARAM='ib*psvoltage'
+.MEAS DC vos FIND PAR'abs(V(os))' AT=0
+.PRINT PAR'1-ABS(V(out1,os))/(Gain*V(in1))' PAR'1-ABS(V(out2,os))/(Gain*V(in1))'
+
+.endl dc
+
+
+.lib tran1
+
+* For rise edge slewrate
+X1	in1 out1 vdd vss	eval_cir	
+
+* For fall edge slewrate
+X2	in2 out2 vdd vss	eval_cir	
+
+* Offset voltage
+Xo	0  os vdd vss		eval_cir	
+
+VIN1	in1 0			PWL (
++'td' '-vp'  
++'td+tr' 'vp'  
++'td+tr+pw1' 'vp' 
++'td+tr+pw1+tf' 'vp/2' 
++'td+tr+pw1+tf+pw1' 'vp/2' )
+
+E1	0 in2 in1 0		1
+
+.param vp=100m tr='vp/srmax' tf='vp/srmax'
++ td=100n tstopsr=1m    $ pulse delay and simulation length
++ tstartm=100u         $ max settling time
++ tstepsr=10p           $ simulation time step
++ srmax=1e11           $ pulse gradient
++ pw1='tstopsr*0.5'     $ pulse width
+.TRAN tstepsr tstopsr 
+.MEAS TRAN vps  FIND V(out1,os) AT=0 print=0
+.MEAS TRAN vpt  FIND V(out1,os) AT='tstopsr' print=0
+.MEAS TRAN vpit FIND V(in1)  AT=tstopsr print=0
+.MEAS TRAN vpm  MAX  V(out1,os) FROM='tstartm' TO='td+tr+10u' print=0
+.MEAS TRAN vns  FIND V(out2,os) AT=0 print=0
+.MEAS TRAN vnt  FIND V(out2,os) AT=tstopsr print=0
+.MEAS TRAN vnit FIND V(in2)  AT=tstopsr print=0
+.MEAS TRAN vnm  MIN  V(out2,os) FROM='tstartm' TO='td+tr+10u' print=0
+.MEAS TRAN srr1 DERIV V(out1,os) WHEN V(out1,os)='0.9*vps' print=0
+.MEAS TRAN srr2 DERIV V(out1,os) WHEN V(out1,os)=0 print=0
+.MEAS TRAN srr3 DERIV V(out1,os) WHEN V(out1,os)='0.9*vpt' print=0
+.MEAS TRAN srr PARAM='(srr1+srr2+srr3)/3' print=0
+.MEAS TRAN srf1 DERIV V(out2,os) WHEN V(out2,os)='0.9*vns' print=0
+.MEAS TRAN srf2 DERIV V(out2,os) WHEN V(out2,os)=0 print=0
+.MEAS TRAN srf3 DERIV V(out2,os) WHEN V(out2,os)='0.9*vnt' print=0
+.MEAS TRAN srf PARAM='(srf1+srf2+srf3)/3' print=0
+.MEAS TRAN sr PARAM='min(abs(srr),abs(srf))'
+
+.endl tran1
+
+
+.lib tran2
+
+.PARAM
++ tds=1m vs=1m fs=1000 	$ signal delay, amplitude and frequency 
++ wn=100 sp=1e6         $ number of waves and sample points/wave
++ trp=0.1n tfp=0.1n     $ transition time
++ tstop='wn/fs+tds'     $ simulation length
++ tres='1/(fs*sp)'      $ time resolution
++ pw2='tstop*1.5'       $ pulse width of supply voltage 
++ pp2='tstop*2'         $ pulse period of supply voltage
+
+X1a     in out vdd1 vss1	eval_cir	
+
+VIN1    in 0                    SIN 0 vs fs tds
+VDDP    vdd vdd1                PULSE half 0 0 trp tfp pw2 pp2   
+VSSP    vss1 vss                PULSE half 0 0 trp tfp pw2 pp2  
+
+.TRAN tres tstop START='tstop-1/fs'
+.FOUR 1000 V(out)
+
+.endl tran2

@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>演算増幅器設計コンテスト 評価結果</title>
+<style>
+:root {color-scheme:dark; --bg:#0c1320; --surface:#152237; --header:#1c2d45; --hover:#243954; --line:#344862; --text:#edf3fb; --muted:#b4c2d6; --accent:#9cc7ff; --kit:#9cc7ff; --system:#88dec4; --warn:#f4ce87; --error:#ffaab8; --difference-bg:#352e20}
+* {box-sizing:border-box}
+body {margin:0; background:var(--bg); color:var(--text); font:16px/1.6 system-ui,sans-serif}
+main {max-width:1450px; margin:auto; padding:32px 24px}
+h1 {font-size:28px; margin:0 0 8px} h2 {font-size:21px}
+p {color:var(--muted)} a {color:var(--accent)}
+button {font:inherit; color:inherit; background:var(--surface); border:1px solid var(--line); border-radius:3px; padding:8px 12px}
+button {cursor:pointer} button:hover {border-color:var(--accent); background:var(--hover)}
+button:focus-visible,textarea:focus-visible,tr:focus-visible {outline:2px solid var(--accent); outline-offset:2px}
+.controls {display:flex; gap:16px; align-items:center; flex-wrap:wrap; margin:24px 0}
+.section-tabs {display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); width:min(100%,560px); gap:4px; padding:4px; border:1px solid var(--line); border-radius:3px; background:var(--bg)}
+.section-tabs button {border:0; padding:12px 8px; background:transparent; color:var(--muted); transition:background 160ms,color 160ms}
+.section-tabs button:hover {background:var(--surface); color:var(--text)}
+.section-tabs button[aria-pressed="true"] {background:var(--header); color:var(--accent); font-weight:600; box-shadow:inset 0 -2px var(--accent)}
+.scroll {overflow:auto; border:1px solid var(--line); border-radius:3px; background:var(--surface)}
+table {border-collapse:collapse; width:100%} th,td {padding:12px 16px; border-bottom:1px solid var(--line); text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums}
+th {color:var(--muted); background:var(--header)} th:first-child,td:first-child {text-align:left}
+tbody tr:last-child td {border-bottom:0} #ranking tr {cursor:pointer} #ranking tr:nth-child(even) {background:#18283e} #ranking tr:hover {background:var(--hover)}
+.name {min-width:24ch; white-space:normal; overflow-wrap:anywhere}
+.rank {width:1%; padding:12px 8px; text-align:center}
+.group {text-align:center}
+.warning {color:var(--warn)} .error {color:var(--error)} .changed {background:var(--difference-bg)} .changed td:first-child {box-shadow:inset 3px 0 var(--warn)} .muted {color:var(--muted)}
+.dataset-0 {color:var(--kit)} .dataset-1 {color:var(--system)}
+body:has(dialog[open]) {overflow:hidden}
+dialog {position:fixed; inset:0; margin:0; width:100vw; max-width:none; height:100dvh; max-height:none; border:0; background:transparent; color:var(--text); padding:80px 24px 24px; overflow:hidden}
+dialog::backdrop {background:#030914cc; backdrop-filter:blur(3px)}
+.detail-panel {width:min(1200px,100%); max-height:calc(100dvh - 104px); margin:0 auto; overflow:auto; overscroll-behavior:contain; border:1px solid var(--line); border-radius:3px; background:var(--surface); padding:28px; box-shadow:0 20px 80px #0006}
+.dialog-close {position:fixed; top:24px; right:max(24px,calc((100vw - 1200px)/2)); width:48px; height:48px; padding:4px; display:grid; place-items:center; color:var(--text); z-index:1}
+.dialog-close,.dialog-close:hover {background:transparent; border:0; box-shadow:none}
+.dialog-close:hover {color:var(--accent)}
+.dialog-close svg {width:40px; height:40px; pointer-events:none}
+dialog h2 {margin:0; overflow-wrap:anywhere} .versions {display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr)); gap:24px; margin:24px 0}
+#metrics td:first-child {white-space:normal; min-width:240px}
+textarea {width:100%; min-height:260px; font:16px/1.5 ui-monospace,monospace; background:var(--bg); color:var(--text); border:1px solid var(--line); border-radius:3px; padding:12px}
+pre {white-space:pre-wrap; overflow-wrap:anywhere; font:inherit} details {margin:16px 0} summary {cursor:pointer; color:var(--accent)}
+ul {padding-left:24px} .files {max-height:220px; overflow:auto; overflow-wrap:anywhere} #warnings pre {color:var(--warn)}
+@media (max-width:650px) {main {padding:24px 16px} dialog {padding:80px 12px 16px} .detail-panel {padding:20px 12px; max-height:calc(100dvh - 96px)} .dialog-close {right:12px} th,td {padding:10px} }
+@media print { :root {color-scheme:light; --bg:white; --surface:white; --header:#eee; --hover:#eee; --text:black; --line:#bbb; --muted:#444; --warn:#805000; --error:#a32135; --kit:#214c85; --system:#1c6550; --difference-bg:#fff0ce} .controls,button {display:none} main {padding:0} .scroll {overflow:visible} dialog[open] {position:static; width:100%; height:auto; max-height:none; padding:0; overflow:visible} .detail-panel {max-height:none; width:100%; padding:0; overflow:visible; border:0; box-shadow:none} body:has(dialog[open]) {overflow:visible} body:has(dialog[open]) main {display:none} #ranking tr:nth-child(even) {background:white} .name {max-width:none; white-space:normal; overflow-wrap:anywhere} }
+</style>
+<main>
+  <h1>評価結果</h1>
+  <p>KITとシステム再現の評価結果を、KITの順位順に表示します。</p>
+  <div class="controls">
+    <div class="section-tabs" id="section" role="group" aria-label="部門の切り替え">
+      <button type="button" data-section="1" aria-pressed="true">部門1</button>
+      <button type="button" data-section="2" aria-pressed="false">部門2</button>
+      <button type="button" data-section="3" aria-pressed="false">部門3</button>
+      <button type="button" data-section="4" aria-pressed="false">部門4</button>
+    </div>
+  </div>
+  <p id="summary" role="status"></p>
+  <div class="scroll"><table><thead id="heading"></thead><tbody id="ranking"></tbody></table></div>
+  <p id="empty" hidden>この部門の提出はありません。</p>
+  <p id="difference-note"></p>
+  <details id="warnings" hidden><summary>読み込み時の警告</summary><pre></pre></details>
+</main>
+<dialog id="detail" aria-labelledby="detail-title">
+  <button id="close" class="dialog-close" type="button" aria-label="詳細を閉じる" autofocus><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4L20 20M20 4L4 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+  <div class="detail-panel" id="detail-panel">
+  <h2 id="detail-title"></h2>
+  <p id="netlist-warning" class="warning" hidden>同じ提出名ですが、元ネットリストの内容が異なります。</p>
+  <p>比較可能な値に差がある項目を色で示します。</p>
+  <div class="scroll"><table><thead id="metric-heading"></thead><tbody id="metrics"></tbody></table></div>
+  <div id="versions" class="versions"></div>
+  </div>
+</dialog>
+<script type="application/json" id="report-data">__REPORT_DATA__</script>
+<script>
+'use strict';
+const data = JSON.parse(document.getElementById('report-data').textContent);
+const $ = id => document.getElementById(id);
+let selectedSection = '1';
+function element(tag, text, className) {
+  const node = document.createElement(tag);
+  if (text !== undefined) node.textContent = text;
+  if (className) node.className = className;
+  return node;
+}
+if (data.labels.length > 1) $('difference-note').textContent = `スコア差は ${data.labels[1]} − ${data.labels[0]} です。両方が有効な場合に表示します。`;
+if (data.warnings.length) { $('warnings').hidden = false; $('warnings').querySelector('pre').textContent = data.warnings.join('\n'); }
+function openDetail(row) {
+  $('detail-title').textContent = `部門${selectedSection} / ${row.name}`;
+  $('netlist-warning').hidden = !row.netlists_differ;
+  const heading = element('tr'); heading.append(element('th', '評価項目'));
+  data.labels.forEach((label, index) => heading.append(element('th', label, `dataset-${index % 2}`)));
+  $('metric-heading').replaceChildren(heading); $('metrics').replaceChildren();
+  row.metrics.forEach(metric => {
+    const tr = element('tr', undefined, metric.different ? 'changed' : '');
+    tr.append(element('td', metric.name));
+    metric.values.forEach(value => { const td = element('td', value ? value.display : '—'); if (value) td.title = value.raw; tr.append(td); });
+    $('metrics').append(tr);
+  });
+  $('versions').replaceChildren();
+  row.entries.forEach((entry, index) => {
+    const panel = element('section'); panel.append(element('h3', data.labels[index], `dataset-${index % 2}`));
+    if (!entry) { panel.append(element('p', '未評価')); $('versions').append(panel); return; }
+    panel.append(element('p', `${entry.status} / 順位: ${entry.rank ?? '—'} / スコア: ${entry.display_score ?? '—'}`));
+    if (entry.error) panel.append(element('pre', `エラーコード: ${entry.error_code}\n${entry.error}`, 'error'));
+    const netlist = element('textarea'); netlist.readOnly = true; netlist.value = entry.netlist ?? '元ネットリストが見つかりません。'; netlist.setAttribute('aria-label', `${data.labels[index]} の元ネットリスト`); panel.append(netlist);
+    const files = element('details'); files.append(element('summary', 'JSON・HSPICE出力ファイル'));
+    const list = element('ul', undefined, 'files');
+    entry.links.forEach(file => { const li = element('li'); const a = element('a', file.name); a.href = file.href; a.target = '_blank'; a.rel = 'noopener'; li.append(a); list.append(li); });
+    files.append(list); panel.append(files); $('versions').append(panel);
+  });
+  $('detail').showModal();
+  $('detail-panel').scrollTop = 0;
+}
+function render() {
+  const rows = data.sections[selectedSection];
+  const index = Math.max(0, data.labels.indexOf('KIT'));
+  const visible = [...rows].sort((a,b) => (a.entries[index]?.rank ?? Infinity) - (b.entries[index]?.rank ?? Infinity) || a.name.localeCompare(b.name));
+  const heading = element('tr'), columns = element('tr');
+  const nameHeading = element('th', '提出名（選択して詳細）', 'name'); nameHeading.rowSpan = 2; heading.append(nameHeading);
+  data.labels.forEach((label, index) => {
+    const group = element('th', label, `group dataset-${index % 2}`); group.colSpan = 2; heading.append(group);
+    columns.append(element('th', '順位', 'rank'), element('th', 'スコア / 状態'));
+  });
+  if (data.labels.length > 1) { const difference = element('th', 'スコア差'); difference.rowSpan = 2; heading.append(difference); }
+  $('heading').replaceChildren(heading, columns); $('ranking').replaceChildren();
+  visible.forEach(row => {
+    const tr = element('tr'); tr.tabIndex = 0; tr.setAttribute('aria-label', `${row.name} の詳細`);
+    const name = element('td', row.name, 'name'); name.title = row.name; tr.append(name);
+    row.entries.forEach(entry => {
+      tr.append(element('td', entry?.rank ?? '—', 'rank'));
+      const stateClass = !entry ? 'muted' : entry.status === '要件未達' ? 'warning' : entry.status === '評価エラー' ? 'error' : '';
+      const score = element('td', entry ? entry.display_score ?? entry.status : '未評価', stateClass);
+      if (entry?.score) score.title = entry.score; tr.append(score);
+    });
+    if (data.labels.length > 1) tr.append(element('td', row.difference ?? '—'));
+    tr.addEventListener('click', () => openDetail(row));
+    tr.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openDetail(row); } });
+    $('ranking').append(tr);
+  });
+  $('empty').hidden = visible.length > 0;
+  $('summary').textContent = `全${rows.length}件。` + data.labels.map((label, i) => {
+    const entries = rows.map(row => row.entries[i]);
+    return `${label}: 有効 ${entries.filter(entry => entry?.rank != null).length}件 / 要件未達 ${entries.filter(entry => entry?.status === '要件未達').length}件 / エラー ${entries.filter(entry => entry?.status === '評価エラー').length}件 / 未評価 ${entries.filter(entry => !entry).length}件`;
+  }).join('、');
+}
+$('section').addEventListener('click', event => {
+  const button = event.target.closest('button[data-section]');
+  if (!button) return;
+  selectedSection = button.dataset.section;
+  $('section').querySelectorAll('button').forEach(tab => tab.setAttribute('aria-pressed', String(tab === button)));
+  render();
+});
+$('close').addEventListener('click', () => $('detail').close());
+let outsidePointerDown = false;
+$('detail').addEventListener('pointerdown', event => { outsidePointerDown = event.target === $('detail'); });
+$('detail').addEventListener('click', event => { if (outsidePointerDown && event.target === $('detail')) $('detail').close(); });
+render();
+</script>
+</html>

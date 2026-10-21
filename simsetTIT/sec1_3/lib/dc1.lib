@@ -1,0 +1,22 @@
+* DC simulation for bias current and power dissipation
+
+.lib dc1
+ 
+VIN	inp 0	dc 0
+VDD	vdd 0	'step'
+VSS	0 vss	'step'
+ 
+X1	s inp out vdd vss	opamp
+R1	s 0			valr1
+R2	out s			valr2
+ 
+.PARAM half='psvoltage/2' valr1=10k valr2=10k
+.DC VIN -0.1 0.1 0.1 SWEEP step POI 3 '0.9*half' 'half' '1.1*half'
+.TEMP -40 25 80
+
+.MEAS DC ivdd FIND I(VDD) AT=0 print=0
+.MEAS DC ivss FIND I(VSS) AT=0 print=0
+.MEAS DC ib   PARAM='max(abs(ivdd),abs(ivss))'
+.MEAS DC pdis PARAM='ib*2*step'
+
+.endl dc1

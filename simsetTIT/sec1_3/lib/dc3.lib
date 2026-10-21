@@ -1,0 +1,30 @@
+* Output voltage range simulation
+
+.lib dc3
+
+VIN     in1 0   dc 0
+E1      0 in2 in1 0             1
+VDD     vdd 0   'half'
+VSS     0 vss   'half'
+ 
+* Positive side
+X1a     inm1 0 out1 vdd vss     opamp
+R1a     in1 inm1                rload
+R2a     inm1 out1               rload
+ 
+* Negative side
+X1b     inm2 0 out2 vdd vss     opamp
+R1b     in2 inm2                rload
+R2b     inm2 out2               rload
+ 
+* offset voltage
+X1c     inm3 0 os vdd vss       opamp
+R1c     0 inm3                  rload
+R2c     inm3 os                 rload
+ 
+.PARAM half='psvoltage/2' rload=20k
+.DC VIN 10m half 10m
+.MEAS dc psvoltage param='psvoltage'
+.PRINT PAR'ABS(1-ABS(V(out1,os))/V(in1))' PAR'ABS(1-ABS(V(out2,os))/V(in1))'
+
+.endl dc3

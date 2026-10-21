@@ -1,0 +1,65 @@
+* Slewrate simulation
+
+.lib tran1
+
+VDD	vdd 0	'half'
+VSS	0 vss	'half'
+ 
+* For rise edge slewrate
+X1	s1 in1 o1 vdd vss	opamp
+R1a	s1 0	valr1
+R1b	o1 s1	valr2
+ 
+* For fall edge slewrate
+X2	s2 in2 o2 vdd vss	opamp
+R2a	s2 0	valr1
+R2b	o2 s2	valr2
+ 
+* Offset voltage
+Xos	ss 0 os vdd vss		opamp
+Rosa	ss 0	valr1
+Ros	os ss	valr2
+ 
+* Stimulus
+VIN1 in1 0 PWL (
++'td' '-vp'
++'td+tr' 'vp'
++'td+tr+tp' 'vp'
++'td+tr+tp+tf' 'vp/2'
++'td+tr+tp+tf+tp' 'vp/2' )
+ 
+E1	0 in2 in1 0	1    $ inverted input for fall edge 
+ 
+.PARAM half='psvoltage/2' valr1=10k valr2=10k srmax=1e11
+* + vp=             $ pulse amplitude, use your simulated value of maximum input voltage
++ td=100n         $ pulse delay
++ tr='vp/srmax'   $ pulse rise time
++ tf='vp/srmax'	  $ pulse fall time
++ tp=200u         $ pulse width
+ 
+* Analysis
+.TRAN 10p 400u    $ transient simulation for 400us with 10ps time step
+* Measurements for rise edge (remove offset voltage from the output voltage)
+.MEAS TRAN vo1min  FIND  V(o1,os) AT=0 print=0
+.MEAS TRAN vo1max  FIND  V(o1,os) AT=200u print=0
+.MEAS TRAN vo1f    FIND  V(o1,os) AT=400u print=0
+.MEAS TRAN vi1f    FIND  V(in1)   AT=400u print=0
+.MEAS TRAN srr1 DERIV V(o1,os) WHEN V(o1,os)='0.9*vo1min' print=0
+.MEAS TRAN srr2 DERIV V(o1,os) WHEN V(o1,os)=0 print=0
+.MEAS TRAN srr3 DERIV V(o1,os) WHEN V(o1,os)='0.9*vo1max' print=0
+.MEAS TRAN srr  PARAM='(srr1+srr2+srr3)/3'
+ 
+* Measurements for fall edge (remove offset voltage from the output voltage)
+.MEAS TRAN vo2max  FIND V(o2,os)  AT=0 print=0
+.MEAS TRAN vo2min  FIND V(o2,os)  AT=200u print=0
+.MEAS TRAN vo2f    FIND V(o2,os)  AT=400u print=0
+.MEAS TRAN vi2f    FIND V(in2)    AT=400u print=0
+.MEAS TRAN srf1 DERIV V(o2,os) WHEN V(o2,os)='0.9*vo2max' print=0
+.MEAS TRAN srf2 DERIV V(o2,os) WHEN V(o2,os)=0 print=0
+.MEAS TRAN srf3 DERIV V(o2,os) WHEN V(o2,os)='0.9*vo2min' print=0
+.MEAS TRAN srf  PARAM='(srf1+srf2+srf3)/3'
+ 
+* Choose the smaller value as slewrate measurement result
+.MEAS TRAN sr   PARAM='min(abs(srr),abs(srf))'
+
+.endl tran1

@@ -1,0 +1,41 @@
+* Common mode range simulation
+
+.lib dc2
+
+VIN     in1 0   dc 0
+E1      0 in2 in1 0 1
+VDD     vdd 0   'half'
+VSS     0 vss   'half'
+ 
+ 
+* Positive side
+X1a     inm1 inp1 outx1 vdd vss opamp
+R3a     in1 inp1                'rload/2'
+R4a     inp1 0                  'rload/2'
+R1a     in1 inm1                'rload/2'
+R2a     inm1 out1               rload
+Rla     outx1 0                 rload
+E1a     out1 0 outx1 0          bgain
+ 
+* Negative side
+X1b     inm2 inp2 outx2 vdd vss opamp
+R3b     in2 inp2                'rload/2'
+R4b     inp2 0                  'rload/2'
+R1b     in2 inm2                'rload/2'
+R2b     inm2 out2               rload
+Rlb     outx2 0                 rload
+E1b     out2 0 outx2 0          bgain
+ 
+* offset voltage
+X2      inm3 0 osx vdd vss      opamp
+R12     0 inm3                  'rload/2'
+R22     inm3 os                 rload
+Rl2     osx 0                   rload
+E2      os 0 osx 0              bgain
+ 
+.PARAM half='psvoltage/2' rload=20k bgain=10
+.DC VIN 10m psvoltage 10m
+.MEAS dc psvoltage param='psvoltage'
+.PRINT PAR'ABS(1-ABS(V(out1,os))/(0.5*V(in1)))' PAR'ABS(1-ABS(V(out2,os))/(0.5*V(in1)))'
+
+.endl dc2

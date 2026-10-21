@@ -1,0 +1,31 @@
+*
+!.gitignore
+!simset/
+!simset/**/*
+!simsetTIT/
+!simsetTIT/**/*
+!environment.yml
+!main.py
+!README.md
+!report.py
+!template.html
+
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.swp
+*.swo
+*.bak
+*.tmp
+*.orig
+*.rej
+tmp/
+temp/

@@ -1,0 +1,21 @@
+* DC simulation for bias current and power dissipation (Typical Corner)
+
+.lib dc4
+
+VIN	in 0 DC 0 AC 1
+VDD	vdd 0 'half'
+VSS	0 vss 'half'
+
+X1 s in out vdd vss	opamp
+R1 s 0 valr1
+R2 out s valr2
+
+.PARAM half='psvoltage/2' valr1=10k valr2=10k valrl=20k
+.param vdcmin='-half' vdcmax='half' vdcstep='psvoltage/100' step=half
+.DC VIN vdcmin vdcmax vdcstep
+.MEAS DC ibd FIND I(VDD) AT=0 print=0
+.MEAS DC ibs FIND I(VSS) AT=0 print=0
+.MEAS DC ib PARAM='max(abs(ibd),abs(ibs))'
+.MEAS DC pdis PARAM='ib*psvoltage'
+
+.endl dc4

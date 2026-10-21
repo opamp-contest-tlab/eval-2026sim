@@ -1,0 +1,39 @@
+* PSRR simulation
+
+
+.lib ac4
+
+VIN     in 0    	dc 0 ac 1
+VDD	vdd 0		half
+VDD1	vdd vdd1	dc 0 ac 1
+VSS	0 vss		half
+VSS1	vss2 vss	dc 0 ac 1
+ 
+* For differential gain
+X1      s in od vdd vss opamp
+R1      od s                    valrf
+C1      s 0                     valcf
+R2      od 0                    valrl
+ 
+* For VDD
+X1a     s1 0 odd vdd1 vss       opamp
+R1a     odd s1                  valrf
+C1a	s1 0	                valcf
+R2a     odd 0                   valrl
+ 
+* For VSS
+X1b     s2 0 oss vdd vss2       opamp
+R1b     oss s2                  valrf
+C1b	s2 0			valcf
+R2b     oss 0                   valrl
+ 
+ 
+.PARAM half='psvoltage/2' valrl=20k valrf=1T valcf=10m
++ valr1=10k valr2=10k
+.AC DEC 100 0.1 1
+.MEAS pd FIND PAR('VDB(od) - VDB(odd)') AT=0.1 print=0
+.MEAS ps FIND PAR('VDB(od) - VDB(oss)') AT=0.1 print=0
+.MEAS psrr PARAM='min(pd,ps)'
+
+
+.endl ac4

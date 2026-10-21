@@ -1,0 +1,19 @@
+* Simulation for THD
+
+.lib tran1
+
+VIN	inp 0 	SIN 0 2.5m 100 1m
+VDD	vdd 0	PULSE 0 half 0 0.1n 0.1n 1.5015 2.002
+VSS	0 vss	PULSE 0 half 0 0.1n 0.1n 1.5015 2.002
+ 
+X1	s inp out vdd vss opamp
+R1	s 0 valr1
+R2	out s valr2
+ 
+.PARAM half='psvoltage/2' valr1=10k valr2=10k
+
+.PARAM fs=100 tstop='9/fs' tres='1/fs/1024'
+.TRAN 10n 1.001 START='1.001-10m'
+.FOUR 100 V(out)
+
+.endl tran1
